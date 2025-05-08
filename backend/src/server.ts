@@ -1,44 +1,19 @@
-// src/server.ts
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import dotenv from 'dotenv';
+import app from './app';
+import config from './app/config';
+import { connectDB } from './app/config/db';
 
-import mongoose from 'mongoose';
+const PORT = config.PORT || 5000;
 
-dotenv.config();
-
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-// Middleware
-app.use(cors());
-app.use(helmet());
-app.use(morgan('dev'));
-app.use(express.json());
-
-// MongoDB connection
-const MONGODB_URI = process.env.MONGODB_URI;
-
-export async function connectDB() {
+const startServer = async () => {
   try {
-    await mongoose.connect(MONGODB_URI as string);
-    console.log('Connected to MongoDB');
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
   } catch (error) {
-    console.error('MongoDB connection error:', error);
+    console.error('Failed to start server:', error);
     process.exit(1);
   }
-}
-// Connect to MongoDB
-connectDB();
+};
 
-// Health check
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'OK' });
-});
-
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+startServer();
